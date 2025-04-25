@@ -1,15 +1,41 @@
 #!/usr/bin/env -S uv run
-
 import os
 import sys
 import argparse
 import datetime
 import curses
 import subprocess
+import textwrap
 
 
 def get_title(date) -> str:
     return date.strftime("%Y-%m-%d-%a").upper()
+
+
+def format_markdown(file_path, width=80):
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    wrapped_lines = []
+    buffer = []
+
+    for line in lines:
+        if line.strip() == "":
+            if buffer:
+                paragraph = " ".join(buffer)
+                wrapped_lines.extend(textwrap.wrap(paragraph, width=width))
+                buffer = []
+            wrapped_lines.append("")
+        else:
+            buffer.append(line.strip())
+
+    if buffer:
+        paragraph = " ".join(buffer)
+        wrapped_lines.extend(textwrap.wrap(paragraph, width=width))
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        for line in wrapped_lines:
+            f.write(line + "\n")
 
 
 def create_journal_file(date, output_dir="."):
@@ -24,14 +50,16 @@ def create_journal_file(date, output_dir="."):
     if not file_exists:
         # Create the file with title and separator
         with open(filepath, "w") as f:
-            f.write(f"{title}\n")
-            f.write("=" * len(title) + "\n\n")
+            f.write(f"# {title}\n")
         print(f"Created new journal file: {filepath}")
     else:
         print(f"Opening existing journal file: {filepath}")
 
     # Open the file with vi
     subprocess.call(["vi", filepath])
+
+    # Format the file
+    format_markdown(filepath)
 
     return filepath
 
@@ -78,7 +106,7 @@ def select_date(stdscr, output_dir="."):
 
         # Count lines if file exists
         if exists:
-            line_count = get_file_line_count(filepath) - 3
+            line_count = get_file_line_count(filepath) - 2
             line_counts.append(line_count)
         else:
             line_counts.append(0)
