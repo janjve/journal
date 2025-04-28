@@ -84,6 +84,7 @@ def select_date(stdscr, output_dir="."):
     curses.init_pair(1, curses.COLOR_RED, -1)  # For new files
     curses.init_pair(2, curses.COLOR_WHITE, -1)  # For existing files
     curses.init_pair(3, curses.COLOR_YELLOW, -1)  # For the arrow
+    curses.init_pair(4, curses.COLOR_GREEN, -1)  # For the sunday reminder
 
     # Get dates for the last week
     today = datetime.datetime.now()
@@ -115,6 +116,14 @@ def select_date(stdscr, output_dir="."):
     while True:
         stdscr.clear()
         height, width = stdscr.getmaxyx()
+
+        # Sunday reminder
+        if today.weekday() == 6:
+            reminder = "It is sunday, Remember to reflect!"
+            reminder_x = (width - len(reminder)) // 2
+            stdscr.attron(curses.color_pair(4))
+            stdscr.addstr(1, reminder_x, reminder)
+            stdscr.attroff(curses.color_pair(4))
 
         # Draw options
         for idx, date in enumerate(dates):
